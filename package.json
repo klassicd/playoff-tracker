@@ -7,7 +7,9 @@
     "normalizr": "^3.2.4",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
-    "react-scripts": "1.0.17"
+    "react-scripts": "1.0.17",
+    "react-spinners": "^0.2.5",
+    "react-table": "^6.7.4"
   },
   "scripts": {
     "start": "react-scripts start",
