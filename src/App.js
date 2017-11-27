@@ -9,6 +9,7 @@ import 'react-table/react-table.css';
 import './App.css';
 
 const SECONDS_IN_GAME = 3600;
+const NUM_ADVANCING = 6;
 
 const franchise = new schema.Entity('franchises');
 const player = new schema.Entity(
@@ -77,14 +78,19 @@ const columns = [
         accessor: 'name'
     },
     {
+        id: 'score',
         Header: 'Score',
-        accessor: d => d.score.toFixed(2),
-        id: 'score'
+        accessor: d => d.score
     },
     {
+        id: 'projectedScore',
         Header: 'Projected Score',
-        accessor: d => d.projectedScore.toFixed(2),
-        id: 'projectedScore'
+        accessor: d => Math.round(d.projectedScore * 100) / 100
+    },
+    {
+        id: 'projectedToAdvance',
+        Header: 'Projected To Advance',
+        accessor: d => (d.projectedToAdvance ? 'Yes' : 'No')
     }
 ];
 
@@ -113,7 +119,6 @@ class App extends Component {
             const { score: projectedScore } = projectedScores[playerId];
             const projectionWeight = gameSecondsRemaining / SECONDS_IN_GAME;
             const livePlayerProjection = score + projectionWeight * projectedScore;
-            console.log(score, projectedScore, projectionWeight, livePlayerProjection, liveTeamProjection);
             return liveTeamProjection + livePlayerProjection;
         }, 0);
     }
@@ -121,18 +126,24 @@ class App extends Component {
     getTableData() {
         const { franchises, liveScores } = this.state.entities;
         if (franchises) {
-            return Object.keys(franchises).map(franchiseId => {
+            const allProjectedScores = [];
+            const tableData = Object.keys(franchises).map(franchiseId => {
                 const { name } = franchises[franchiseId];
                 const { score } = liveScores[franchiseId];
                 const projectedScore = this.getProjectedScore(franchiseId);
+                allProjectedScores.push(projectedScore);
                 return { name, score, projectedScore };
             });
+            allProjectedScores.sort((a, b) => a - b).reverse();
+            return tableData.map(data => ({
+                ...data,
+                projectedToAdvance: data.projectedScore >= allProjectedScores[NUM_ADVANCING - 1]
+            }));
         }
         return [];
     }
 
     render() {
-        console.log('state', this.state);
         const tableData = this.getTableData();
         return (
             <div className="app">
@@ -145,6 +156,7 @@ class App extends Component {
                         showPagination={false}
                         showPageSizeOptions={false}
                         defaultPageSize={tableData.length}
+                        defaultSorted={[{ id: 'projectedScore', desc: true }]}
                     />
                 )}
             </div>
