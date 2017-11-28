@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { normalize, schema } from 'normalizr';
+import { BrowserRouter, Route } from 'react-router-dom';
 
 import ResultsTable from './components/ResultsTable/ResultsTable';
+import Admin from './components/Admin/Admin';
 
 import 'react-table/react-table.css';
 import './App.css';
@@ -72,9 +74,12 @@ class App extends Component {
 
     render() {
         return (
-            <div className="app">
-                <ResultsTable {...this.state} />
-            </div>
+            <BrowserRouter>
+                <div className="app">
+                    <Route exact path="/" render={() => <ResultsTable {...this.state} />} />
+                    <Route path="/admin" render={() => <Admin {...this.state} />} />
+                </div>
+            </BrowserRouter>
         );
     }
 }
