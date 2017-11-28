@@ -12,17 +12,19 @@ const SECONDS_IN_GAME = 3600;
 const NUM_ADVANCING = 6;
 
 const franchise = new schema.Entity('franchises');
-const player = new schema.Entity(
-    'players',
-    {},
-    {
-        processStrategy: player => ({
-            ...player,
-            score: Number.parseFloat(player.score),
-            gameSecondsRemaining: Number.parseInt(player.gameSecondsRemaining, 10)
-        })
-    }
-);
+
+/* Couldn't figure out how to normalize this data since the same player could have a different "status" on different teams */
+// const player = new schema.Entity(
+//     'players',
+//     {},
+//     {
+//         processStrategy: player => ({
+//             ...player,
+//             score: Number.parseFloat(player.score),
+//             gameSecondsRemaining: Number.parseInt(player.gameSecondsRemaining, 10)
+//         })
+//     }
+// );
 const projectedScore = new schema.Entity(
     'projectedScores',
     {},
@@ -35,11 +37,11 @@ const projectedScore = new schema.Entity(
 );
 const liveScore = new schema.Entity(
     'liveScores',
-    {
-        players: {
-            player: new schema.Array(player)
-        }
-    },
+    // {
+    //     players: {
+    //         player: new schema.Array(player)
+    //     }
+    // },
     {
         processStrategy: liveScore => ({
             ...liveScore,
@@ -80,7 +82,11 @@ const columns = [
     {
         id: 'score',
         Header: 'Score',
-        accessor: d => d.score
+        accessor: d => Number.parseFloat(d.score)
+    },
+    {
+        Header: 'Game Seconds Remaining',
+        accessor: 'gameSecondsRemaining'
     },
     {
         id: 'projectedScore',
@@ -90,9 +96,16 @@ const columns = [
     {
         id: 'projectedToAdvance',
         Header: 'Projected To Advance',
-        accessor: d => (d.projectedToAdvance ? 'Yes' : 'No')
+        Cell: props => <span>{props.value ? 'Yes' : 'No'}</span>,
+        accessor: d => d.projectedToAdvance
     }
 ];
+
+const getTrProps = (state, rowInfo, column) => {
+    return {
+        className: rowInfo.row.projectedToAdvance ? 'in' : 'out'
+    };
+};
 
 class App extends Component {
     state = {
@@ -111,12 +124,13 @@ class App extends Component {
     }
 
     getProjectedScore(franchiseId) {
-        const { projectedScores, liveScores, players } = this.state.entities;
-        const { players: playerIds } = liveScores[franchiseId];
-        const starters = playerIds.player.filter(playerId => players[playerId].status === 'starter');
-        return starters.reduce((liveTeamProjection, playerId) => {
-            const { gameSecondsRemaining, score } = players[playerId];
-            const { score: projectedScore } = projectedScores[playerId];
+        const { projectedScores, liveScores } = this.state.entities;
+        const { players: franchisePlayers } = liveScores[franchiseId];
+        const starters = franchisePlayers.player.filter(player => player.status === 'starter');
+        return starters.reduce((liveTeamProjection, player) => {
+            const score = Number.parseFloat(player.score);
+            const gameSecondsRemaining = Number.parseInt(player.gameSecondsRemaining, 10);
+            const { score: projectedScore } = projectedScores[player.id];
             const projectionWeight = gameSecondsRemaining / SECONDS_IN_GAME;
             const livePlayerProjection = score + projectionWeight * projectedScore;
             return liveTeamProjection + livePlayerProjection;
@@ -129,10 +143,10 @@ class App extends Component {
             const allProjectedScores = [];
             const tableData = Object.keys(franchises).map(franchiseId => {
                 const { name } = franchises[franchiseId];
-                const { score } = liveScores[franchiseId];
+                const { score, gameSecondsRemaining, playersYetToPlay: numPlayersRemaining } = liveScores[franchiseId];
                 const projectedScore = this.getProjectedScore(franchiseId);
                 allProjectedScores.push(projectedScore);
-                return { name, score, projectedScore };
+                return { name, score, projectedScore, gameSecondsRemaining, numPlayersRemaining };
             });
             allProjectedScores.sort((a, b) => a - b).reverse();
             return tableData.map(data => ({
@@ -157,6 +171,7 @@ class App extends Component {
                         showPageSizeOptions={false}
                         defaultPageSize={tableData.length}
                         defaultSorted={[{ id: 'projectedScore', desc: true }]}
+                        getTrProps={getTrProps}
                     />
                 )}
             </div>
