@@ -5,6 +5,26 @@ import Loading from '../Loading/Loading';
 
 const SECONDS_IN_GAME = 3600;
 const NUM_ADVANCING = 6;
+const ACTIVE_TEAMS = [
+    '0001',
+    '0007',
+    '0052',
+    '0051',
+    '0005',
+    '0025',
+    '0021',
+    '0011',
+    '0024',
+    '0048',
+    '0045',
+    '0010',
+    '0066',
+    '0054',
+    '0072',
+    '0006',
+    '0050',
+    '0055'
+]
 
 const columns = [
     {
@@ -58,12 +78,17 @@ export default class ResultsTable extends Component {
         const { franchises, liveScores } = this.props.entities;
         if (franchises) {
             const allProjectedScores = [];
-            const tableData = Object.keys(franchises).map(franchiseId => {
-                const { name } = franchises[franchiseId];
-                const { score, gameSecondsRemaining, playersYetToPlay: numPlayersRemaining } = liveScores[franchiseId];
-                const projectedScore = this.getProjectedScore(franchiseId);
-                allProjectedScores.push(projectedScore);
-                return { name, score, projectedScore, gameSecondsRemaining, numPlayersRemaining };
+            const tableData = [];
+            Object.keys(franchises).forEach(franchiseId => {
+                console.log(franchiseId, liveScores)
+                if (ACTIVE_TEAMS.indexOf(franchiseId) > 0) {
+                    const { name } = franchises[franchiseId];
+                    const { score, gameSecondsRemaining, playersYetToPlay: numPlayersRemaining } = liveScores[franchiseId];
+                    const projectedScore = this.getProjectedScore(franchiseId);
+                    allProjectedScores.push(projectedScore);
+                    const data = { name, score, projectedScore, gameSecondsRemaining, numPlayersRemaining };
+                    tableData.push(data);
+                }
             });
             allProjectedScores.sort((a, b) => a - b).reverse();
             return tableData.map(data => ({

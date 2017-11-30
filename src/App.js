@@ -46,7 +46,8 @@ const dataSchema = new schema.Object({
         liveScoring: {
             matchup: new schema.Array({
                 franchise: new schema.Array(liveScore)
-            })
+            }),
+            franchise: new schema.Array(liveScore)
         }
     },
     projectedScores: {
