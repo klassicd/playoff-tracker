@@ -75,7 +75,7 @@ class App extends Component {
 
     render() {
         return (
-            <BrowserRouter>
+            <BrowserRouter basename="/playoff-tracker/">
                 <div className="app">
                     <Route exact path="/" render={() => <ResultsTable {...this.state} />} />
                     <Route path="/admin" render={() => <Admin {...this.state} />} />
