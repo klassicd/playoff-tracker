@@ -80,7 +80,6 @@ export default class ResultsTable extends Component {
             const allProjectedScores = [];
             const tableData = [];
             Object.keys(franchises).forEach(franchiseId => {
-                console.log(franchiseId, liveScores)
                 if (ACTIVE_TEAMS.indexOf(franchiseId) > -1) {
                     const { name } = franchises[franchiseId];
                     const { score, gameSecondsRemaining, playersYetToPlay: numPlayersRemaining } = liveScores[franchiseId];
