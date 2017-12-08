@@ -4,26 +4,20 @@ import ReactTable from 'react-table';
 import Loading from '../Loading/Loading';
 
 const SECONDS_IN_GAME = 3600;
-const NUM_ADVANCING = 6;
+const NUM_ADVANCING = 4;
 const ACTIVE_TEAMS = [
+    '0013',
     '0001',
     '0007',
     '0052',
-    '0051',
-    '0005',
-    '0025',
-    '0021',
-    '0011',
+    '0043',
+    '0020',
     '0024',
+    '0033',
     '0048',
-    '0045',
-    '0010',
-    '0066',
-    '0054',
-    '0072',
+    '0037',
+    '0040',
     '0006',
-    '0050',
-    '0055'
 ]
 
 const columns = [
