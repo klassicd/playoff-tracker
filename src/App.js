@@ -21,6 +21,7 @@ const projectedScore = new schema.Entity(
         })
     }
 );
+
 const liveScore = new schema.Entity(
     'liveScores',
     {},
@@ -33,6 +34,8 @@ const liveScore = new schema.Entity(
         })
     }
 );
+
+const player = new schema.Entity('players');
 
 const dataSchema = new schema.Object({
     league: {
@@ -53,6 +56,11 @@ const dataSchema = new schema.Object({
     projectedScores: {
         projectedScores: {
             playerScore: new schema.Array(projectedScore)
+        }
+    },
+    players: {
+        players: {
+            player: new schema.Array(player)
         }
     }
 });

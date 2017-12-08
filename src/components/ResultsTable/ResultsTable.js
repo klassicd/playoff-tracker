@@ -5,20 +5,20 @@ import Loading from '../Loading/Loading';
 
 const SECONDS_IN_GAME = 3600;
 const NUM_ADVANCING = 4;
-const ACTIVE_TEAMS = [
-    '0013',
-    '0001',
-    '0007',
-    '0052',
-    '0043',
-    '0020',
-    '0024',
-    '0033',
-    '0048',
-    '0037',
-    '0040',
-    '0006',
-]
+const ACTIVE_TEAMS = ['0013', '0001', '0007', '0052', '0043', '0020', '0024', '0033', '0048', '0037', '0040', '0006'];
+const POSITION_ORDERING = {
+    Coach: 0,
+    QB: 1,
+    RB: 2,
+    WR: 3,
+    TE: 4,
+    PK: 5,
+    DE: 6,
+    DL: 7,
+    LB: 8,
+    S: 9,
+    CB: 10
+};
 
 const columns = [
     {
@@ -53,6 +53,18 @@ const getTrProps = (state, rowInfo, column) => {
     };
 };
 
+const SubComponent = row => {
+    return (
+        <ul style={{ margin: 10, listStyle: 'none' }}>
+            {row.original.playersRemaining.map(({ id, name, position, team }) => (
+                <li style={{ margin: 5 }} key={id}>
+                    {name} {team} {position}
+                </li>
+            ))}
+        </ul>
+    );
+};
+
 export default class ResultsTable extends Component {
     getProjectedScore(franchiseId) {
         const { projectedScores, liveScores } = this.props.entities;
@@ -69,17 +81,35 @@ export default class ResultsTable extends Component {
     }
 
     getTableData() {
-        const { franchises, liveScores } = this.props.entities;
+        const { franchises, liveScores, players } = this.props.entities;
         if (franchises) {
             const allProjectedScores = [];
             const tableData = [];
             Object.keys(franchises).forEach(franchiseId => {
                 if (ACTIVE_TEAMS.indexOf(franchiseId) > -1) {
                     const { name } = franchises[franchiseId];
-                    const { score, gameSecondsRemaining, playersYetToPlay: numPlayersRemaining } = liveScores[franchiseId];
+                    const {
+                        score,
+                        gameSecondsRemaining,
+                        playersYetToPlay: numPlayersRemaining,
+                        players: { player: franchisePlayers }
+                    } = liveScores[franchiseId];
                     const projectedScore = this.getProjectedScore(franchiseId);
                     allProjectedScores.push(projectedScore);
-                    const data = { name, score, projectedScore, gameSecondsRemaining, numPlayersRemaining };
+                    const playersRemaining = franchisePlayers
+                        .filter(
+                            ({ status, gameSecondsRemaining }) =>
+                                status === 'starter' && parseInt(gameSecondsRemaining, 10) !== 0
+                        )
+                        .map(({ id }) => players[id]);
+                    const data = {
+                        name,
+                        score,
+                        projectedScore,
+                        gameSecondsRemaining,
+                        numPlayersRemaining,
+                        playersRemaining
+                    };
                     tableData.push(data);
                 }
             });
@@ -107,6 +137,7 @@ export default class ResultsTable extends Component {
                         defaultPageSize={tableData.length}
                         defaultSorted={[{ id: 'projectedScore', desc: true }]}
                         getTrProps={getTrProps}
+                        SubComponent={SubComponent}
                     />
                 )}
             </div>
