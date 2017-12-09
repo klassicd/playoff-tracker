@@ -36,12 +36,16 @@ const liveScore = new schema.Entity(
 );
 
 const player = new schema.Entity('players');
+const division = new schema.Entity('divisions');
 
 const dataSchema = new schema.Object({
     league: {
         league: {
             franchises: {
                 franchise: new schema.Array(franchise)
+            },
+            divisions: {
+                division: new schema.Array(division)
             }
         }
     },

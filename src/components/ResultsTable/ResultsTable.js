@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
-
 import Loading from '../Loading/Loading';
 
 const SECONDS_IN_GAME = 3600;
@@ -53,15 +52,32 @@ const getTrProps = (state, rowInfo, column) => {
     };
 };
 
-const SubComponent = row => {
-    return (
-        <ul style={{ margin: 10, listStyle: 'none' }}>
-            {row.original.playersRemaining.map(({ id, name, position, team }) => (
-                <li style={{ margin: 5 }} key={id}>
+const PlayerList = ({ header, players }) => (
+    <div style={{ marginRight: 5 }}>
+        <div style={{ padding: '0.1rem 0' }}>
+            <strong>{header}:</strong>
+        </div>
+        <ul style={{ listStyle: 'none' }}>
+            {players.map(({ id, name, position, team }) => (
+                <li style={{ padding: '0.1rem 0' }} key={id}>
                     {name} {team} {position}
                 </li>
             ))}
         </ul>
+    </div>
+);
+
+const SubComponent = row => {
+    return (
+        <div style={{ margin: 10, fontSize: '0.85rem' }}>
+            <div>
+                <strong>Division</strong>: {row.original.division.name}
+            </div>
+            <div style={{ display: 'flex' }}>
+                <PlayerList header="Remaining Players" players={row.original.playersRemaining} />
+                <PlayerList header="Players Played" players={row.original.playersPlayed} />
+            </div>
+        </div>
     );
 };
 
@@ -81,13 +97,15 @@ export default class ResultsTable extends Component {
     }
 
     getTableData() {
-        const { franchises, liveScores, players } = this.props.entities;
+        const { entities } = this.props;
+        const { franchises, liveScores, players, divisions } = entities;
         if (franchises) {
             const allProjectedScores = [];
             const tableData = [];
             Object.keys(franchises).forEach(franchiseId => {
                 if (ACTIVE_TEAMS.indexOf(franchiseId) > -1) {
-                    const { name } = franchises[franchiseId];
+                    const { name, division: divisionId } = franchises[franchiseId];
+                    console.log(franchises[franchiseId]);
                     const {
                         score,
                         gameSecondsRemaining,
@@ -97,18 +115,31 @@ export default class ResultsTable extends Component {
                     const projectedScore = this.getProjectedScore(franchiseId);
                     allProjectedScores.push(projectedScore);
                     const playersRemaining = franchisePlayers
+                        .slice()
                         .filter(
                             ({ status, gameSecondsRemaining }) =>
                                 status === 'starter' && parseInt(gameSecondsRemaining, 10) !== 0
                         )
-                        .map(({ id }) => players[id]);
+                        .map(({ id }) => players[id])
+                        .sort((a, b) => POSITION_ORDERING[a.position] - POSITION_ORDERING[b.position]);
+                    const playersPlayed = franchisePlayers
+                        .slice()
+                        .filter(
+                            ({ status, gameSecondsRemaining }) =>
+                                status === 'starter' && parseInt(gameSecondsRemaining, 10) === 0
+                        )
+                        .map(({ id }) => players[id])
+                        .sort((a, b) => POSITION_ORDERING[a.position] - POSITION_ORDERING[b.position]);
+                    const division = divisions[divisionId];
                     const data = {
                         name,
                         score,
                         projectedScore,
                         gameSecondsRemaining,
                         numPlayersRemaining,
-                        playersRemaining
+                        playersRemaining,
+                        playersPlayed,
+                        division
                     };
                     tableData.push(data);
                 }
