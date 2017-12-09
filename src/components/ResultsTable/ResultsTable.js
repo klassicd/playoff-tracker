@@ -105,7 +105,6 @@ export default class ResultsTable extends Component {
             Object.keys(franchises).forEach(franchiseId => {
                 if (ACTIVE_TEAMS.indexOf(franchiseId) > -1) {
                     const { name, division: divisionId } = franchises[franchiseId];
-                    console.log(franchises[franchiseId]);
                     const {
                         score,
                         gameSecondsRemaining,
