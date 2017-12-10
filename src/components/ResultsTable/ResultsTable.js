@@ -137,6 +137,7 @@ export default class ResultsTable extends Component {
                         .sort((a, b) => POSITION_ORDERING[a.position] - POSITION_ORDERING[b.position]);
                     const division = divisions[divisionId];
                     const data = {
+                        franchiseId,
                         name,
                         score,
                         projectedScore,
@@ -177,6 +178,7 @@ export default class ResultsTable extends Component {
                         showPageSizeOptions={false}
                         defaultPageSize={tableData.length}
                         defaultSorted={[{ id: 'projectedScore', desc: true }]}
+                        defaultSortDesc={true}
                         getTrProps={getTrProps}
                         SubComponent={SubComponent}
                     />
