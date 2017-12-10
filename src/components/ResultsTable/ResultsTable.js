@@ -3,9 +3,13 @@ import ReactTable from 'react-table';
 import Loading from '../Loading/Loading';
 import ErrorBoundary from '../ErrorBoundary/ErrorBoundary';
 
+import './ResultsTable.css';
+
 const SECONDS_IN_GAME = 3600;
 const NUM_ADVANCING = 4;
 const NUM_ALMOST_ADVANCING = 4;
+const LEAGUE_YEAR = 2017;
+const LEAGUE_ID = 10507;
 const ACTIVE_TEAMS = ['0013', '0001', '0007', '0052', '0043', '0020', '0024', '0033', '0048', '0037', '0040', '0006'];
 const POSITION_ORDERING = {
     Coach: 0,
@@ -32,19 +36,13 @@ const columns = [
         accessor: d => Number.parseFloat(d.score)
     },
     {
-        Header: 'Game Seconds Remaining',
-        accessor: 'gameSecondsRemaining'
-    },
-    {
         id: 'projectedScore',
         Header: 'Projected Score',
         accessor: d => Math.round(d.projectedScore * 100) / 100
     },
     {
-        id: 'projectedToAdvance',
-        Header: 'Projected To Advance',
-        Cell: props => <span>{props.value ? 'Yes' : 'No'}</span>,
-        accessor: d => d.projectedStatus === 'in'
+        Header: 'Game Seconds Remaining',
+        accessor: 'gameSecondsRemaining'
     }
 ];
 
@@ -74,11 +72,21 @@ const PlayerList = ({ header, players }) => {
 const SubComponent = row => {
     return (
         <ErrorBoundary>
-            <div style={{ margin: 10, fontSize: '0.85rem' }}>
-                <div>
+            <div style={{ marginLeft: '0.5rem', fontSize: '0.85rem' }}>
+                <div className="sub-row">
+                    <a
+                        href={`http://www60.myfantasyleague.com/${LEAGUE_YEAR}/options?L=${LEAGUE_ID}&F=${
+                            row.original.franchiseId
+                        }&O=07`}
+                        target="_blank"
+                    >
+                        Team Page
+                    </a>
+                </div>
+                <div className="sub-row">
                     <strong>Division</strong>: {row.original.division.name}
                 </div>
-                <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex' }} className="sub-row">
                     <PlayerList header="Remaining Players" players={row.original.playersRemaining} />
                     <PlayerList header="Players Played" players={row.original.playersPlayed} />
                 </div>
