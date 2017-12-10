@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import Loading from '../Loading/Loading';
+import ErrorBoundary from '../ErrorBoundary/ErrorBoundary';
 
 const SECONDS_IN_GAME = 3600;
 const NUM_ADVANCING = 4;
+const NUM_ALMOST_ADVANCING = 4;
 const ACTIVE_TEAMS = ['0013', '0001', '0007', '0052', '0043', '0020', '0024', '0033', '0048', '0037', '0040', '0006'];
 const POSITION_ORDERING = {
     Coach: 0,
@@ -42,42 +44,46 @@ const columns = [
         id: 'projectedToAdvance',
         Header: 'Projected To Advance',
         Cell: props => <span>{props.value ? 'Yes' : 'No'}</span>,
-        accessor: d => d.projectedToAdvance
+        accessor: d => d.projectedStatus === 'in'
     }
 ];
 
 const getTrProps = (state, rowInfo, column) => {
     return {
-        className: rowInfo.row.projectedToAdvance ? 'in' : 'out'
+        className: rowInfo.original.projectedStatus
     };
 };
 
-const PlayerList = ({ header, players }) => (
-    <div style={{ marginRight: 5 }}>
-        <div style={{ padding: '0.1rem 0' }}>
-            <strong>{header}:</strong>
+const PlayerList = ({ header, players }) => {
+    return (
+        <div style={{ marginRight: 5 }}>
+            <div style={{ padding: '0.1rem 0' }}>
+                <strong>{header}:</strong>
+            </div>
+            <ul style={{ listStyle: 'none' }}>
+                {players.map(({ id, name, position, team }) => (
+                    <li style={{ padding: '0.1rem 0' }} key={id}>
+                        {name} {team} {position}
+                    </li>
+                ))}
+            </ul>
         </div>
-        <ul style={{ listStyle: 'none' }}>
-            {players.map(({ id, name, position, team }) => (
-                <li style={{ padding: '0.1rem 0' }} key={id}>
-                    {name} {team} {position}
-                </li>
-            ))}
-        </ul>
-    </div>
-);
+    );
+};
 
 const SubComponent = row => {
     return (
-        <div style={{ margin: 10, fontSize: '0.85rem' }}>
-            <div>
-                <strong>Division</strong>: {row.original.division.name}
+        <ErrorBoundary>
+            <div style={{ margin: 10, fontSize: '0.85rem' }}>
+                <div>
+                    <strong>Division</strong>: {row.original.division.name}
+                </div>
+                <div style={{ display: 'flex' }}>
+                    <PlayerList header="Remaining Players" players={row.original.playersRemaining} />
+                    <PlayerList header="Players Played" players={row.original.playersPlayed} />
+                </div>
             </div>
-            <div style={{ display: 'flex' }}>
-                <PlayerList header="Remaining Players" players={row.original.playersRemaining} />
-                <PlayerList header="Players Played" players={row.original.playersPlayed} />
-            </div>
-        </div>
+        </ErrorBoundary>
     );
 };
 
@@ -146,7 +152,12 @@ export default class ResultsTable extends Component {
             allProjectedScores.sort((a, b) => a - b).reverse();
             return tableData.map(data => ({
                 ...data,
-                projectedToAdvance: data.projectedScore >= allProjectedScores[NUM_ADVANCING - 1]
+                projectedStatus:
+                    data.projectedScore >= allProjectedScores[NUM_ADVANCING - 1]
+                        ? 'in'
+                        : data.projectedScore >= allProjectedScores[NUM_ADVANCING + NUM_ALMOST_ADVANCING - 1]
+                          ? 'almost-in'
+                          : 'out'
             }));
         }
         return [];
